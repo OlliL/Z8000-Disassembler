@@ -1,0 +1,82 @@
+
+   dasm - Z8001 disassembler
+
+   Copyright Matt Knoth 2008 (p8000@earthlink.net)
+
+   based on Juergen Buchmueller's Z8002 MAME model
+
+   This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+============================================================================
+
+   Compile:     gcc -Wall dasm.c
+
+============================================================================
+
+   USAGE:
+
+   dasm [-s] [-a] [-t 1/2] [-p <start_pc>] [-o <file_offset>] [-n <n_bytes>] <Z8001_binary>
+               number prefix '0x'-hex, '0'-octal, else decimal
+           -s  segmented mode, non-segmented default
+           -a  display pc and segment number as 32bit hex, rather than <<%seg>>%base
+           -t  test mode: -t1 hex encoding, 1 instruction/line, -t2 hex encoding consecutively - newlines accepted
+           -p  preset PC to argument value
+           -n  stop disassemble after n bytes
+           -o  preset file offset to argument value
+
+============================================================================
+
+   DASM mode:
+
+   Read in a binary file. PC and file offset is changeable via command line options. Selection between
+   non-segmented or segmented mode is required at command line. No segment mode change while runtime supported.
+   Number of disassembly bytes can be set.
+
+============================================================================
+
+   TestMode 1 (-t1):
+
+   Read in a HEX file. Interprets each line as ONE Z8001 command. Missing follow up bytes are extended to zero.
+   Comments are marked with '#' at begin of line and are copied to output stream
+   See VERIF seq_*.src files for examples.
+
+============================================================================
+
+   TestMode 2 (-t2):
+
+   Read in a file of consecutive HEX codes. Newlines are allowed on word boundaries. Can be used instead of
+   binary mode fore easy edit. Comments and other than hex characters are not supported. File offset is possible
+   but must be entered 16bit word aligned.
+
+============================================================================
+
+   Program Test:
+
+   All 65536 primary opcodes have been stimulated using test mode -t2. When neccessary, follow up code has been
+   added per instruction. Startup files are VERIF/seq_nonseg.src (non-segmented), VERIF/seq_short_seg.src (segmented SS)
+   and VERIF/seq_long_seg.src (SL). Resulting output files containing valid, invalid and reserved codes. After
+   pruning, all Z8001 opcodes are listed in seq_nonseg_pruned.lst, seq_short_seg_pruned.lst and seq_long_seg_pruned.lst.
+   A report of pruned (invalide) encodings for all three mode (NS,SS,SL) can be found in prune_report_ns_ss_ls.lst
+
+   All valid opcodes (NS/SS/SL) have been fed into P8000-UDOS U8000ASM PLZ/SYS assembler. Its list output was processed back
+   into the disassembler and compared with all original encoding. This closed verification loop has been executed without 
+   error.
+
+   In theory, those invalid opcodes could be pruned out directly in a second pass of z8000_init (z8000tbl.c) to point to
+   .word statements. In practice however, a correctly executed program will not encounter incorrect opcodes. Preemtively 
+   fetching tools, such as a debugger or a line disassembler will need additional control information to bypass invalid
+   sections. This might be supported in further versions of the line disassembler.
+
+============================================================================
+
